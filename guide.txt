@@ -2,3 +2,9 @@ docker run --name mysql-nest-fast -e MYSQL_ROOT_PASSWORD=Topikinos2001 -p 3306:3
 
 docker pull phpmyadmin/phpmyadmin
 docker run --name phpmyadmin-container -d --link mysql-nest-fast:db -p 8080:80 phpmyadmin/phpmyadmin
+
+
+
+git config --unset core.hooksPath
+git config --get core.hooksPath
+git commit -m "type your comment here" --no-verify
