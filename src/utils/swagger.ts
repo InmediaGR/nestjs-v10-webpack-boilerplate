@@ -1,4 +1,5 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { type INestApplication } from '@nestjs/common';
 
 import { AppConfig, AppModule } from '@mod/app';
 import { NestFactory } from '@nestjs/core';
@@ -11,26 +12,27 @@ import { initialize } from './helper';
  * Generate Swagger JSON Schema offline, it used to deploy the document to other server but not the
  * current service (e.g. GitHub Pages)
  */
-(async () => {
+
+export async function setupSwagger(app: INestApplication): Promise<void> {
   const { npm_package_description, npm_package_name, npm_package_version } =
-    process.env;
+      process.env;
 
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    AppConfig.getFastifyInstance(),
-    { logger: false }
-  );
-
-  initialize(app);
+  // const app = await NestFactory.create<NestFastifyApplication>(
+  //     AppModule,
+  //     AppConfig.getFastifyInstance(),
+  //     { logger: false }
+  // );
+  //
+  // initialize(app);
 
   const swaggerDoc = SwaggerModule.createDocument(
-    app,
-    new DocumentBuilder()
-      .setTitle(npm_package_name)
-      .setDescription(npm_package_description)
-      .setVersion(npm_package_version)
-      .addServer('http://localhost:3000', 'Localhost')
-      .build()
+      app,
+      new DocumentBuilder()
+          .setTitle(npm_package_name)
+          .setDescription(npm_package_description)
+          .setVersion(npm_package_version)
+          .addServer('http://localhost:3000', 'Localhost')
+          .build()
   );
 
   /**
@@ -51,10 +53,23 @@ import { initialize } from './helper';
   }
 
   fs.writeFileSync(
-    `${__filename.slice(__dirname.length + 1, -3)}.json`,
-    JSON.stringify(swaggerDoc)
+      `${__filename.slice(__dirname.length + 1, -3)}.json`,
+      JSON.stringify(swaggerDoc)
   );
 
-  await app.close();
-  process.exit(0);
-})();
+  SwaggerModule.setup('documentation', app, swaggerDoc, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
+
+  console.info(
+      `Documentation: http://localhost:${process.env.PORT}/documentation`,
+  );
+
+  // await app.close();
+  // process.exit(0);
+}
+// (async () => {
+//
+// })();

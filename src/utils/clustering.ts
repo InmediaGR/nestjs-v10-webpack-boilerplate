@@ -3,13 +3,15 @@ import { PinoLogger } from 'nestjs-pino';
 import cluster from 'node:cluster';
 import { cpus } from 'node:os';
 import process from 'node:process';
+import {NestFastifyApplication} from "@nestjs/platform-fastify";
+import {RawServerDefault} from "fastify";
 
 const numCPUs = cpus().length;
 
 /**
  * Determine your total CPU to create certain threads to improve the performance
  */
-export const clusterize = (callback: () => Promise<void>) => {
+export const clusterize = (callback: () => Promise<NestFastifyApplication<RawServerDefault>>) => {
   const logger = new PinoLogger(AppConfig.getLoggerConfig());
   if (cluster.isPrimary) {
     logger.info(`Master server started`);
