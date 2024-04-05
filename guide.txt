@@ -1,0 +1,4 @@
+docker run --name mysql-nest-fast -e MYSQL_ROOT_PASSWORD=Topikinos2001 -p 3306:3306 -d
+
+docker pull phpmyadmin/phpmyadmin
+docker run --name phpmyadmin-container -d --link mysql-nest-fast:db -p 8080:80 phpmyadmin/phpmyadmin
