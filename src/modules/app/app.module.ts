@@ -1,5 +1,5 @@
 import type { ValidationError } from '@nestjs/common';
-
+import { DataSource } from 'typeorm';
 import {
   AllExceptionFilter,
   NormalExceptionFilter,
@@ -12,16 +12,55 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 
 import { AppConfig } from './app.config';
+import { ApiConfigService } from '@/shared/services/api-config.service';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
+import { SharedModule } from '@/shared/shared.module';
+import {TypeOrmModule, TypeOrmModuleOptions} from "@nestjs/typeorm";
+import {addTransactionalDataSource} from "typeorm-transactional";
+
 
 @Module({
   controllers: [AppController],
   imports: [
+    SharedModule,
     // Allow to access .env file and validate env variables
     ConfigModule.forRoot(AppConfig.getInitConifg()),
     // Logger framework that better then NestJS default logger
     LoggerModule.forRoot(AppConfig.getLoggerConfig()),
+    TypeOrmModule.forRootAsync({
+      imports: [SharedModule],
+      useFactory: (configService: ApiConfigService) => {
+        return configService.typeOrmConfig;
+      },
+      inject: [
+        ApiConfigService
+      ],
+      dataSourceFactory: async (options) => {
+        if (!options) {
+          throw new Error('Invalid options passed');
+        }
+        return addTransactionalDataSource(new DataSource(options));
+      },
+    }),
+    // TypeOrmModule.forRoot({
+    //   // TypeORM configuration options go here
+    //   type: 'mysql',
+    //   host: '127.0.0.1',
+    //   port: 3306,
+    //   username: 'root',
+    //   password: 'Topikinos2001',
+    //   database: 'nest-fast',
+    //   entities: [__dirname + '/**/*.entity{.ts,.js}'],
+    //   migrationsRun: true,
+    //   synchronize: true,
+    //   extra: {
+    //     charset: 'utf8mb4_unicode_ci'
+    //   },
+    //   // driver: 'mysql2'
+    // }),
+
   ],
   providers: [
     AppService,
@@ -45,4 +84,18 @@ import { AppService } from './app.service';
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
   ],
 })
-export class AppModule {}
+
+export class AppModule {
+
+  // private static dataSource: DataSource;
+  //
+  // static async initialize(dataSource: DataSource) {
+  //   AppModule.dataSource = dataSource;
+  // }
+  //
+  // static getDataSource(): Promise<DataSource> {
+  //   return Promise.resolve(AppModule.dataSource);
+  // }
+
+
+}

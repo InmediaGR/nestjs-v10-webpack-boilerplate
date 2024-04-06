@@ -8,6 +8,8 @@ import { LogLevel, NodeEnv } from '@share/enums';
 import * as Joi from 'joi';
 
 import { AppController } from './app.controller';
+import {TypeOrmModuleOptions} from "@nestjs/typeorm";
+import {SnakeNamingStrategy} from "@/snake-naming.strategy";
 
 export class AppConfig {
   public static getFastifyInstance(): FastifyAdapter {
@@ -35,6 +37,60 @@ export class AppConfig {
         PORT: Joi.number().min(1).max(65535).required(),
       }),
     };
+  }
+
+  public static typeOrmConfig(): TypeOrmModuleOptions {
+    const { MYSQL_HOST, MYSQL_PORT, MYSQL_USERNAME,
+      MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_CHARSET, MYSQL_COLLATION } = process.env;
+
+    let entities = [__dirname + '/../../modules/**/*.entity{.ts,.js}'];
+    let migrations = [__dirname + '/../../migrations/*{.ts,.js}'];
+
+    if ((module as any).hot) {
+      const entityContext = (require as any).context(
+          './../../modules',
+          true,
+          /\.entity\.ts$/,
+      );
+      entities = entityContext.keys().map(id => {
+        const entityModule = entityContext(id);
+        const [entity] = Object.values(entityModule);
+        return entity;
+      });
+      const migrationContext = (require as any).context(
+          './../../migrations',
+          false,
+          /\.ts$/,
+      );
+      migrations = migrationContext.keys().map(id => {
+        const migrationModule = migrationContext(id);
+        const [migration] = Object.values(migrationModule);
+        return migration;
+      });
+    }
+
+    return {
+      entities,
+      migrations,
+      keepConnectionAlive: true,
+      type: 'mysql',
+      host: MYSQL_HOST,
+      port: parseInt(MYSQL_PORT),
+      username: MYSQL_USERNAME,
+      password: MYSQL_PASSWORD,
+      database: MYSQL_DATABASE,
+      migrationsRun: true,
+      synchronize: true,
+      // logging: this.nodeEnv === 'development',,
+      logging: false,
+      // charset: 'utf8mb4',
+      // collation: 'utf8mb4_unicode_ci',
+      namingStrategy: new SnakeNamingStrategy(),
+      extra: {
+        charset: 'utf8mb4_unicode_ci'
+      }
+    };
+
   }
 
   public static getLoggerConfig(): Params {
