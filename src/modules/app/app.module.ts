@@ -87,15 +87,15 @@ import {addTransactionalDataSource} from "typeorm-transactional";
 
 export class AppModule {
 
-  // private static dataSource: DataSource;
-  //
-  // static async initialize(dataSource: DataSource) {
-  //   AppModule.dataSource = dataSource;
-  // }
-  //
-  // static getDataSource(): Promise<DataSource> {
-  //   return Promise.resolve(AppModule.dataSource);
-  // }
+  private static dataSource: DataSource;
+
+  static async initialize(dataSource: DataSource) {
+    AppModule.dataSource = dataSource;
+  }
+
+  static getDataSource(): Promise<DataSource> {
+    return Promise.resolve(AppModule.dataSource);
+  }
 
 
 }

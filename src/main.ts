@@ -30,8 +30,8 @@ const bootstrap = async () => {
 
   await setupSwagger(app);
 
-  // const dataSource = app.get(DataSource);
-  // await AppModule.initialize(dataSource);
+  const dataSource = app.get(DataSource);
+  await AppModule.initialize(dataSource);
 
   // By default, Fastify only listens localhost, so we should specify '0.0.0.0'
   await app.listen(PORT, '0.0.0.0');
